@@ -23,8 +23,11 @@ for y in year:
     a, b = cols.index('codici_ospedale'), cols.index('codici_specialita')
     cols[b], cols[a] = cols[a], cols[b]
     new_df = tmp_df[cols]
+    year_list = [y] * new_df.shape[0]
+    new_df['year'] = year_list
     file_list.append(new_df)
-    
+
 
 df = pd.concat(file_list, ignore_index=True)
+df.index.name = 'Index'
 df.to_csv(r'../'+ path + 'elaborated_data' + '/' + file_name + '.csv')
