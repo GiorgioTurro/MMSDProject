@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Jan 16 15:49:20 2021
+
+@author: stevi
+"""
+
+
+import pandas as pd
+
+
+def save_queue_statistics(q0):
+    with open('queue_statistics.txt', 'a') as f:
+        print(f"Totale pazienti {q0[0]}, totale giorni attesa {q0[1]},"
+              f" media giorni attesa {q0[2]}, totale day_max {q0[3]},"
+              f" totale cap_max {q0[4]}\n", file=f)
+
+
+def convert_queue(file):
+    read_file = pd.read_csv(r'/Users/stevi/Desktop/MMSD/new_progetto/progetto/'
+                            + file + '.txt', header=None, skiprows=1)
+
+    read_file.index.name = 'Index'
+    read_file.columns = ['Paziente', 'data_ricovero', 'data_effettivo_ricovero',
+                         'ospedale', 'specialita', 'motivazione', 'coda',
+                         'giorni_attesa']
+
+    for index, row in read_file.iterrows():
+        row.iloc[0] = str(row.iloc[0]).split(" ")[1]
+        row.iloc[1] = str(row.iloc[1]).split(" ")[3]
+        row.iloc[2] = str(row.iloc[2]).split(" ")[4]
+        row.iloc[3] = str(row.iloc[3]).split(" ")[2]
+        row.iloc[4] = str(row.iloc[4]).split(" ")[2]
+        row.iloc[5] = str(row.iloc[5]).split(" ")[2]
+        row.iloc[6] = str(row.iloc[6]).split(" ")[3]
+        row.iloc[7] = str(row.iloc[7]).split(" ")[3]
+
+    read_file.to_csv(r'/Users/stevi/Desktop/MMSD/new_progetto/progetto/'+file +
+                     '.csv')
+
+    return read_file
+
+
+def count_day(file):
+    file['giorni_attesa'] = pd.to_numeric(file['giorni_attesa'])
+    return file['giorni_attesa'].sum()
+
+
+def count_patients(file):
+    index = file.index
+    return len(index)
+
+
+def counting_motivation(file):
+    d = 0
+    c = 0
+    for p in file.iterrows():
+        if p[1]['motivazione'] == 'cap_max':
+            c += 1
+        else:
+            d += 1
+    return d, c
+
+
+def queue_info():
+    file_name = 'queue_info_'
+    #num = ['0', '1', '30']
+    num = ['0', '1','30']
+    for n in num:
+        print("queue: "+str(n))
+        try:
+            file = pd.read_csv(r'/Users/stevi/Desktop/MMSD/new_progetto/progetto/'
+                               + file_name + n + '.csv')
+        except:
+            file = convert_queue(file_name+n)
+
+        tot_patients = count_patients(file)
+        days_of_waiting = count_day(file)
+        days_mean = days_of_waiting / tot_patients
+        tot_day_max, tot_cap_max = counting_motivation(file)
+        save_queue_statistics([tot_patients, days_of_waiting, days_mean,
+                               tot_day_max, tot_cap_max])
+
+
+def convert_anticipated_queue(file):
+    read_file = pd.read_csv(r'/Users/stevi/Desktop/MMSD/new_progetto/progetto/'
+                            + file + '.txt', header=None, skiprows=1)
+
+    read_file.index.name = 'Index'
+    read_file.columns = ['Paziente', 'data_ricovero', 'data_effettivo_ricovero',
+                         'ospedale', 'specialita', 'giorni_attesa']
+
+    for index, row in read_file.iterrows():
+        row.iloc[0] = str(row.iloc[0]).split(" ")[1]
+        row.iloc[1] = str(row.iloc[1]).split(" ")[3]
+        row.iloc[2] = str(row.iloc[2]).split(" ")[4]
+        row.iloc[3] = str(row.iloc[3]).split(" ")[2]
+        row.iloc[4] = str(row.iloc[4]).split(" ")[2]
+        row.iloc[5] = str(row.iloc[5]).split(" ")[3]
+
+    read_file.to_csv(r'/Users/stevi/Desktop/MMSD/new_progetto/progetto/'+file +
+                     '.csv')
+
+    return read_file
+
+
+def save_anticipated_queue(q):
+    with open('anticipated_queue_statistics.txt', 'a') as f:
+        print(f"Totale pazienti {q[0]}, totale giorni anticipati {q[1]},"
+              f" media dei giorni risparmiati {q[2]}\n", file=f)
+
+
+def anticipated_queue():
+    file_name = 'anticipated_queue_info_'
+    num = ['1', '30']
+
+    for n in num:
+        print("anticipated: "+str(n))
+        try:
+            file = pd.read_csv(r'/Users/stevi/Desktop/MMSD/new_progetto/progetto/'
+                               + file_name + n + '.csv')
+        except:
+            file = convert_anticipated_queue(file_name+n)
+
+        tot_patients = count_patients(file)
+        anticipated_days = count_day(file)
+        days_mean = anticipated_days / tot_patients
+        save_anticipated_queue([tot_patients, anticipated_days, days_mean])
+
+
+
+
+if __name__=='__main__':
+    queue_info()
+    anticipated_queue()
+
+
+
+
+
+
+
+
+
+

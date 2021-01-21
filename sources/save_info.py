@@ -5,36 +5,43 @@ Created on Sat Jan  9 13:59:01 2021
 
 @author: stevi
 """
+from datetime import date
 
 
-def create_day_log(patient_day_list, hosp_list):
-    with open('log_day.txt', 'w') as log:
-        n1 = len(patient_day_list)
-        n2 = len(hosp_list)
-        print(f"Il numero totale di giorni è {n1} e il numero di specialità è"
-              f" {n2}\n", file=log)
+def create_day_log(patient_day_list, hosp_list, spurious_days):
+    with open('log_day_30.txt', 'w') as log:
+        i1 = len(patient_day_list)
+        i2 = len(hosp_list)
+        print(f"Il numero totale di giorni è {i1} e il numero di specialità è"
+              f" {i2}, giorni spuri {spurious_days}\n", file=log)
 
 
 def create_queue_info():
-    with open('queue_info.txt', 'w') as q:
+    with open('queue_info_30.txt', 'w') as q:
         print(f"Numero coda indica quanto ha sforato il paziente", file=q)
 
 
-def save_day_info(hosp_list, day):
-    with open('log_day.txt', 'a') as log:
+def create_anticipated_queue():
+    with open('anticipated_queue_info_30.txt', 'w') as q:
+        print(f"Lista dei pazienti ricoverati in anticipo", file=q)
+
+
+def save_day_info(hosp_list, day, weekday):
+    with open('log_day_30.txt', 'a') as log:
         for h in hosp_list:
-            n1 = len(h.rest_queue)
-            n2 = h.capacity[7]
-            n3 = len(h.waiting_queue)
-            print(f"Giorno {day}: ospedale {h.id_hosp}: specialità {h.id_spec}:"
-                  f" ricoveri {h.counter_day_cap}: letti occupati"
-                  f" {n1}/{n2}: attesa {n3}",
+            i1 = len(h.rest_queue)
+            i2 = h.capacity[7]
+            i3 = len(h.waiting_queue)
+            i4 = h.capacity[weekday]
+            print(f"Giorno {day}, ospedale {h.id_hosp}, specialità {h.id_spec},"
+                  f" ricoveri {h.counter_day_cap}/{i4}, letti occupati"
+                  f" {i1}/{i2}, coda attesa {i3}",
                   file=log)
         print(f"\n", file=log)
 
 
 def save_queue_info(queue_info, day):
-    with open('queue_info.txt', 'a') as info:
+    with open('queue_info_30.txt', 'a') as info:
         for p in queue_info:
             if p[0].patient_day_recovery != p[0].patient_true_day_recovery:
                 i1 = p[0].id_patient
@@ -48,35 +55,32 @@ def save_queue_info(queue_info, day):
                     i8 = p[1].capacity[7]
                 else:
                     i8 = p[1].capacity[day]
+
+                d0 = date(int(str(i2.split("-")[0])), int(str(i2.split("-")[1])),
+                          int(str(i2.split("-")[2])))
+                d1 = date(int(str(i3.split("-")[0])), int(str(i3.split("-")[1])),
+                          int(str(i3.split("-")[2])))
+                delta = d1 - d0
+                i9 = delta.days
                 print(f"Paziente {i1}, data ricovero {i2}, data effettivo ricovero "
                       f"{i3}, ospedale {i4}, specialità {i5}, motivazione {i6},"
-                      f" numero coda {i7}/{i8}", file=info)
+                      f" numero coda {i7}/{i8}, giorni attesa {i9}", file=info)
 
 
-"""
-da fare solo se data ricovero != data effettivo ricovero
-print(f"Id paziente, data ricovero, data effettivo ricovero, id osp, id spec, motivazione"
-      f"numero paziente del giorno/capacità max giornaliera, numero posto letto/capacità max posti letto")
-numeri del paziente sulla coda, voglio sapere di quanto ha sforato
-"""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def anticipated_patient(queue_anticipated_days):
+    with open('anticipated_queue_info_30.txt', 'a') as info:
+        for p in queue_anticipated_days:
+            i1 = p.id_patient
+            i2 = p.patient_day_recovery
+            i3 = p.patient_true_day_recovery
+            i4 = p.patient_id_hosp
+            i5 = p.patient_id_spec
+            d0 = date(int(str(i2.split("-")[0])), int(str(i2.split("-")[1])),
+                      int(str(i2.split("-")[2])))
+            d1 = date(int(str(i3.split("-")[0])), int(str(i3.split("-")[1])),
+                      int(str(i3.split("-")[2])))
+            delta = d0 - d1
+            i6 = delta.days
+            print(f"Paziente {i1}, data ricovero {i2}, data effettivo ricovero "
+                  f"{i3}, ospedale {i4}, specialità {i5}, giorni anticipati {i6}",
+                  file=info)
