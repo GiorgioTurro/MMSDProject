@@ -233,9 +233,11 @@ def start_simulation(resources, patients, hosp_dict):
             new_year = int(new_date.split("-")[0])
             first_date = new_date
         else:
-            first_date = datetime.datetime.strptime(first_date, '%Y-%m-%d')
-            new_date = str(first_date + datetime.timedelta(days=1)).split(" ")[0]
+            first_date = datetime.datetime.strptime(str(first_date), '%Y-%m-%d')
+            tmp_day = first_date + datetime.timedelta(days=1)
+            new_date = str(tmp_day).split(" ")[0]
             new_year = int(new_date.split("-")[0])
+            first_date = new_date
 
         # Ottengo il numero del giorno della settimana
         dayNumber = number_of_the_day(new_date)
@@ -305,6 +307,7 @@ def start_simulation(resources, patients, hosp_dict):
 
         # Controllo se posso anticipare l'ingresso di pazienti nei prossimi
         # n giorni se ho superato 'spurious_days' giorni
+
         if d > spurious_days:
             forward_days = 30
             end = d + 1 + forward_days
@@ -340,7 +343,7 @@ def start_simulation(resources, patients, hosp_dict):
                 for p in patient_removed:
                     next_day = next_day.drop(p)
                 tmp_ant_day.append(next_day)
-            len_list.append([len(anticipated_days),len(tmp_ant_day)])
+            len_list.append([len(anticipated_days), len(tmp_ant_day)])
             # Sostituisco i dataframe in patient_day_list con quelli aggiornati
             # in anticipated_days
             patient_day_list[d + 1:end] = tmp_ant_day
