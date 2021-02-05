@@ -8,13 +8,14 @@ Created on Sat Jan 16 15:49:20 2021
 
 
 import pandas as pd
+import calendar
 
-
-def save_queue_statistics(q0):
+def save_queue_statistics(q):
     with open('queue_statistics.txt', 'a') as f:
-        print(f"Totale pazienti {q0[0]}, totale giorni attesa {q0[1]},"
-              f" media giorni attesa {q0[2]}, totale day_max {q0[3]},"
-              f" totale cap_max {q0[4]}\n", file=f)
+        print(f'Totale pazienti {q[0]}, totale giorni attesa {q[1]},'
+              f' media giorni attesa {q[2]}, totale day_max {q[3]},'
+              f' totale cap_max {q[4]}, totale all_max {q[5]},'
+              f' settimana {q[6]}\n', file=f)
 
 
 def convert_queue(file):
@@ -55,18 +56,33 @@ def count_patients(file):
 def counting_motivation(file):
     d = 0
     c = 0
+    a = 0
     for p in file.iterrows():
         if p[1]['motivazione'] == 'cap_max':
             c += 1
         else:
-            d += 1
-    return d, c
+            if p[1]['motivazione'] == 'day_max':
+                d += 1
+            else:
+                a += 1
+    return d, c, a
 
+
+def count_week(file):
+    w = [0,0,0,0,0,0,0]
+    
+    day_column = file['data_ricovero']
+    for d in day_column:
+        year, month, day = (int(i) for i in d.split("-"))
+        day = int(calendar.weekday(year, month, day))
+        w[day] += 1
+
+    return w
 
 def queue_info():
     file_name = 'queue_info_'
     #num = ['0', '1', '30']
-    num = ['0', '1','30']
+    num = ['0']
     for n in num:
         print("queue: "+str(n))
         try:
@@ -75,12 +91,15 @@ def queue_info():
         except:
             file = convert_queue(file_name+n)
 
+
+        # Da modificare per dividere i pazienti entrati in coda in base al giorno
         tot_patients = count_patients(file)
         days_of_waiting = count_day(file)
+        week_days = count_week(file)
         days_mean = days_of_waiting / tot_patients
-        tot_day_max, tot_cap_max = counting_motivation(file)
+        tot_day_max, tot_cap_max, tot_all_max = counting_motivation(file)
         save_queue_statistics([tot_patients, days_of_waiting, days_mean,
-                               tot_day_max, tot_cap_max])
+                               tot_day_max, tot_cap_max, tot_all_max, week_days])
 
 
 def convert_anticipated_queue(file):
@@ -113,7 +132,7 @@ def save_anticipated_queue(q):
 
 def anticipated_queue():
     file_name = 'anticipated_queue_info_'
-    num = ['1', '30']
+    num = ['30']
 
     for n in num:
         print("anticipated: "+str(n))
@@ -133,7 +152,7 @@ def anticipated_queue():
 
 if __name__=='__main__':
     queue_info()
-    anticipated_queue()
+    #anticipated_queue()
 
 
 
